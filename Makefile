@@ -5,10 +5,21 @@ createContainer:
 postgresScript:
 	cat bankly_table_schema.sql | sudo docker exec  -i postgres16 psql -U root simple_bank
 
+
 createdb:
 	sudo docker exec -it postgres16 createdb --username=root --owner=root simple_bank
 
 dropdb:
 	sudo docker exec -it postgres16 dropdb simple_bank
 
-.PHONY: createdb dropdb postgres postgresScript createContainer
+migrateUp:
+	migrate -path db/migrate -database "postgresql://root:secret@localhost:5432/simple_bank?sslmode=disable" -verbose up
+
+migrateDown:
+	migrate -path db/migrate -database "postgresql://root:secret@localhost:5432/simple_bank?sslmode=disable" -verbose down
+
+	
+sqlc:
+	sqlc generate
+
+.PHONY: createdb dropdb postgres postgresScript createContainer migrateDown migrateUp sqlc
