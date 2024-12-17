@@ -10,3 +10,9 @@ SELECT * FROM entries WHERE account_id=$1;
 
 -- name: getAllEntries :many
 SELECT * FROM entries;
+
+-- name: updateUserAmount :one
+UPDATE entries SET amount=$2 WHERE id=$1 RETURNING *;
+
+-- name: DeleteUserAmount :exec
+DELETE from entries WHERE id=$1;

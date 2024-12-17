@@ -3,12 +3,21 @@
 //   sqlc v1.27.0
 // source: entries.sql
 
-package tutorial
+package sqlc
 
 import (
 	"context"
 	"database/sql"
 )
+
+const deleteUserAmount = `-- name: DeleteUserAmount :exec
+DELETE from entries WHERE id=$1
+`
+
+func (q *Queries) DeleteUserAmount(ctx context.Context, id int64) error {
+	_, err := q.db.ExecContext(ctx, deleteUserAmount, id)
+	return err
+}
 
 const createEntries = `-- name: createEntries :one
 INSERT INTO
@@ -110,4 +119,25 @@ func (q *Queries) getEntriesByAccountId(ctx context.Context, accountID sql.NullI
 		return nil, err
 	}
 	return items, nil
+}
+
+const updateUserAmount = `-- name: updateUserAmount :one
+UPDATE entries SET amount=$2 WHERE id=$1 RETURNING id, account_id, amount, created_at
+`
+
+type updateUserAmountParams struct {
+	ID     int64
+	Amount string
+}
+
+func (q *Queries) updateUserAmount(ctx context.Context, arg updateUserAmountParams) (Entry, error) {
+	row := q.db.QueryRowContext(ctx, updateUserAmount, arg.ID, arg.Amount)
+	var i Entry
+	err := row.Scan(
+		&i.ID,
+		&i.AccountID,
+		&i.Amount,
+		&i.CreatedAt,
+	)
+	return i, err
 }
